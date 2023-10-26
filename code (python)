@@ -1,0 +1,95 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+from slovnet import Morph
+from yargy import Parser, rule, and_, not_, or_
+from yargy.interpretation import fact
+from yargy.relations import gnc_relation
+from yargy.pipelines import morph_pipeline
+
+
+from natasha import (
+    Segmenter,
+    MorphVocab,
+
+    NewsEmbedding,
+    NewsMorphTagger,
+    NewsSyntaxParser,
+    NewsNERTagger,
+
+    PER,
+    NamesExtractor,
+
+    Doc
+)
+segmenter = Segmenter()
+morph_vocab = MorphVocab()
+
+emb = NewsEmbedding()
+morph_tagger = NewsMorphTagger(emb)
+syntax_parser = NewsSyntaxParser(emb)
+ner_tagger = NewsNERTagger(emb)
+
+names_extractor = NamesExtractor(morph_vocab)
+gnc = gnc_relation()
+'''
+Phrase = fact(
+    'phrase',
+    ['first', 'second']
+)
+FIRST = gram('ADJ').interpretation(
+    Phrase.first.inflected()
+).match(gnc)
+
+SECOND = gram('NOUN').interpretation(
+    Phrase.second.inflected()
+).match(gnc)
+PHRASE = or_(
+    rule(
+        FIRST,
+        SECOND
+    ),
+    rule(
+        SECOND,
+        FIRST
+    )
+).interpretation(
+    Phrase
+)
+
+
+with open('I love you Python .txt', encoding='utf8') as f:
+    text = f.readline()
+
+text = input()
+
+import PySimpleGUI as sg
+layout = [
+    [sg.InputText()]
+    [sg.InputText(), sg.FileBrowse()]
+    [sg.InputText(size=(88, 20))]
+]
+window = sg.Window('File Compare', layout)
+while True:                             # The Event Loop
+    event, values = window.read()
+    # print(event, values) #debug
+    if event in (None, 'Exit', 'Cancel'):
+        break
+'''
+
+doc = Doc(text)
+doc.segment(segmenter)
+doc.tag_morph(morph_tagger)
+
+list_of_phrases = list()
+
+for token1 in range(len(doc.tokens)):
+    print(doc.tokens[token1])
+    for token2 in range(len(doc.tokens)):
+        if doc.tokens[token1].pos == 'NOUN':
+            if doc.tokens[token2].pos == 'ADJ':
+                if doc.tokens[token1].feats['Case'] == doc.tokens[token2].feats['Case'] and doc.tokens[token1].feats['Gender'] == doc.tokens[token2].feats['Gender'] and doc.tokens[token1].feats['Number'] == doc.tokens[token2].feats['Number']:
+                    list_of_phrases.append(doc.tokens[token2].text + " " + doc.tokens[token1].text)
+phrases = tuple(list_of_phrases)
+for i in range(len(phrases)):
+    print(phrases[i])
+
